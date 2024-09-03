@@ -12,6 +12,7 @@ import (
 	"github.com/cockroachdb/pebble/internal/base"
 	"github.com/cockroachdb/pebble/internal/cache"
 	"github.com/cockroachdb/pebble/internal/humanize"
+	"github.com/cockroachdb/pebble/internal/manual"
 	"github.com/cockroachdb/pebble/record"
 	"github.com/cockroachdb/pebble/sstable"
 	"github.com/cockroachdb/redact"
@@ -286,6 +287,8 @@ type Metrics struct {
 		optionsFileSize  uint64
 		manifestFileSize uint64
 	}
+
+	manualMemory manual.Stats
 }
 
 var (
@@ -500,6 +503,19 @@ func (m *Metrics) SafeFormat(w redact.SafePrinter, _ rune) {
 		notApplicable,
 		notApplicable,
 		redact.Safe(hitRate(m.Filter.Hits, m.Filter.Misses)))
+	w.Printf("cgo memory stats:\n")
+	w.Printf("  BlockCacheMap: %s in use (%s total allocated)\n",
+		humanize.IEC.Uint64(m.manualMemory[manual.BlockCacheMap].InUseBytes),
+		humanize.IEC.Uint64(m.manualMemory[manual.BlockCacheMap].TotalBytes))
+	w.Printf("  BlockCacheEntry: %s in use (%s total allocated)\n",
+		humanize.IEC.Uint64(m.manualMemory[manual.BlockCacheEntry].InUseBytes),
+		humanize.IEC.Uint64(m.manualMemory[manual.BlockCacheEntry].TotalBytes))
+	w.Printf("  BlockCacheData: %s in use (%s total allocated)\n",
+		humanize.IEC.Uint64(m.manualMemory[manual.BlockCacheData].InUseBytes),
+		humanize.IEC.Uint64(m.manualMemory[manual.BlockCacheData].TotalBytes))
+	w.Printf("  MemTable: %s in use (%s total allocated)\n",
+		humanize.IEC.Uint64(m.manualMemory[manual.MemTable].InUseBytes),
+		humanize.IEC.Uint64(m.manualMemory[manual.MemTable].TotalBytes))
 }
 
 func hitRate(hits, misses int64) float64 {

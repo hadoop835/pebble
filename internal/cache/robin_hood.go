@@ -58,7 +58,7 @@ type robinHoodEntries struct {
 func newRobinHoodEntries(n uint32) robinHoodEntries {
 	size := uintptr(n) * unsafe.Sizeof(robinHoodEntry{})
 	return robinHoodEntries{
-		ptr: unsafe.Pointer(&(manual.New(int(size)))[0]),
+		ptr: unsafe.Pointer(&(manual.New(manual.BlockCacheMap, int(size)))[0]),
 		len: n,
 	}
 }
@@ -71,7 +71,7 @@ func (e robinHoodEntries) at(i uint32) *robinHoodEntry {
 func (e robinHoodEntries) free() {
 	size := uintptr(e.len) * unsafe.Sizeof(robinHoodEntry{})
 	buf := (*[manual.MaxArrayLen]byte)(e.ptr)[:size:size]
-	manual.Free(buf)
+	manual.Free(manual.BlockCacheMap, buf)
 }
 
 // robinHoodMap is an implementation of Robin Hood hashing. Robin Hood hashing

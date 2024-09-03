@@ -1970,7 +1970,7 @@ func (d *DB) newMemTable(logNum FileNum, logSeqNum uint64) (*memTable, *flushabl
 
 	mem := newMemTable(memTableOptions{
 		Options:   d.opts,
-		arenaBuf:  manual.New(int(size)),
+		arenaBuf:  manual.New(manual.MemTable, int(size)),
 		logSeqNum: logSeqNum,
 	})
 
@@ -1979,7 +1979,7 @@ func (d *DB) newMemTable(logNum FileNum, logSeqNum uint64) (*memTable, *flushabl
 
 	entry := d.newFlushableEntry(mem, logNum, logSeqNum)
 	entry.releaseMemAccounting = func() {
-		manual.Free(mem.arenaBuf)
+		manual.Free(manual.MemTable, mem.arenaBuf)
 		mem.arenaBuf = nil
 		atomic.AddInt64(&d.atomic.memTableCount, -1)
 		atomic.AddInt64(&d.atomic.memTableReserved, -int64(size))
