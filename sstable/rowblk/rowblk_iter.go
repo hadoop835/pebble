@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/binary"
+	"fmt"
 	"io"
 	"slices"
 	"sort"
@@ -429,7 +430,7 @@ func (i *Iter) readFirstKey() error {
 		ptr = unsafe.Pointer(uintptr(ptr) + 1)
 	} else {
 		// The shared length is != 0, which is invalid.
-		panic("first key in block must have zero shared length")
+		panic(fmt.Sprintf("first key in block must have zero shared length, not %d; block data: %x", shared, *(*[16]byte)(ptr)))
 	}
 
 	var unshared uint32
