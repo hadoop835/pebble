@@ -1,0 +1,96 @@
+alloc
+20
+----
+start    width    in use    total
+20B      2B       1         1
+
+alloc
+128
+----
+start    width    in use    total
+20B      2B       1         1
+128B     16B      1         1
+
+alloc
+1000
+10000
+100000
+100001
+110000
+180000
+200000
+300000
+100000000
+200000000
+300000000
+----
+start    width    in use    total
+20B      2B       1         1
+128B     16B      1         1
+960B     64B      1         1
+9.0KB    1.0KB    1         1
+96KB     8.0KB    2         2
+104KB    8.0KB    1         1
+160KB    16KB     1         1
+192KB    16KB     1         1
+288KB    32KB     1         1
+88MB     8.0MB    1         1
+176MB    16MB     1         1
+256MB    32MB     1         1
+
+free
+20
+----
+start    width    in use    total
+20B      2B       2         2
+128B     16B      1         1
+960B     64B      1         1
+9.0KB    1.0KB    1         1
+96KB     8.0KB    2         2
+104KB    8.0KB    1         1
+160KB    16KB     1         1
+192KB    16KB     1         1
+288KB    32KB     1         1
+88MB     8.0MB    1         1
+176MB    16MB     1         1
+256MB    32MB     1         1
+
+free
+1000
+100000000
+200000000
+----
+start    width    in use    total
+20B      2B       2         2
+128B     16B      1         1
+960B     64B      2         2
+9.0KB    1.0KB    1         1
+96KB     8.0KB    2         2
+104KB    8.0KB    1         1
+160KB    16KB     1         1
+192KB    16KB     1         1
+288KB    32KB     1         1
+88MB     8.0MB    2         2
+176MB    16MB     2         2
+256MB    32MB     1         1
+
+alloc
+1
+2
+10000000000
+----
+start    width    in use    total
+0        9B       2         2
+20B      2B       2         2
+128B     16B      1         1
+960B     64B      2         2
+9.0KB    1.0KB    1         1
+96KB     8.0KB    2         2
+104KB    8.0KB    1         1
+160KB    16KB     1         1
+192KB    16KB     1         1
+288KB    32KB     1         1
+88MB     8.0MB    2         2
+176MB    16MB     2         2
+256MB    32MB     1         1
+960MB             1         1

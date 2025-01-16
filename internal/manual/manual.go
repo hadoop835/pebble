@@ -7,6 +7,7 @@ package manual
 import (
 	"fmt"
 	"sync/atomic"
+	"time"
 	"unsafe"
 
 	"github.com/cockroachdb/pebble/internal/invariants"
@@ -73,12 +74,18 @@ var counters [NumPurposes]struct {
 
 func recordAlloc(purpose Purpose, n uintptr) {
 	counters[purpose].InUseBytes.Add(int64(n))
+	if HistogramEnabled {
+		h.RecordAlloc(n)
+	}
 }
 
 func recordFree(purpose Purpose, n uintptr) {
 	newVal := counters[purpose].InUseBytes.Add(-int64(n))
 	if invariants.Enabled && newVal < 0 {
 		panic(fmt.Sprintf("negative counter value %d", newVal))
+	}
+	if HistogramEnabled {
+		h.RecordFree(n)
 	}
 }
 
@@ -90,4 +97,21 @@ func GetMetrics() Metrics {
 		res[i].InUseBytes = uint64(counters[i].InUseBytes.Load())
 	}
 	return res
+}
+
+const HistogramEnabled = true
+
+var h *histogram
+
+func init() {
+	if !HistogramEnabled {
+		return
+	}
+	h = &histogram{}
+	go func() {
+		for range time.NewTicker(15 * time.Second).C {
+			fmt.Println("Pebble CGO allocation histogram by size:")
+			fmt.Println(h.String())
+		}
+	}()
 }
