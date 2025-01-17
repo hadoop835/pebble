@@ -53,6 +53,8 @@ const (
 	BlockCacheData
 	MemTable
 
+	ReadBlock
+
 	NumPurposes
 )
 

@@ -19,6 +19,7 @@ import (
 	"github.com/cockroachdb/pebble/internal/cache"
 	"github.com/cockroachdb/pebble/internal/crc"
 	"github.com/cockroachdb/pebble/internal/invariants"
+	"github.com/cockroachdb/pebble/internal/manual"
 	"github.com/cockroachdb/pebble/internal/sstableinternal"
 	"github.com/cockroachdb/pebble/objstorage"
 	"github.com/cockroachdb/pebble/objstorage/objstorageprovider"
@@ -476,6 +477,8 @@ func (r *Reader) doRead(
 	bh Handle,
 	initBlockMetadataFn func(*Metadata, []byte) error,
 ) (Value, error) {
+	x := manual.New(manual.ReadBlock, MetadataSize+uintptr(bh.Length+TrailerLen))
+	manual.Free(manual.ReadBlock, x)
 	compressed := Alloc(int(bh.Length+TrailerLen), env.BufferPool)
 	readStopwatch := makeStopwatch()
 	var err error

@@ -67,8 +67,8 @@ func (h *histogram) RecordFree(purpose Purpose, size uintptr) {
 func (h *histogram) String() string {
 	var buf bytes.Buffer
 	tw := tabwriter.NewWriter(&buf, 2, 1, 4, ' ', 0)
-	_, _ = fmt.Fprintf(tw, "start\twidth\tcache-map\tcache-entry\tcache-data\tmem-table\n")
-	_, _ = fmt.Fprintf(tw, "\t\tin use (total)\tin use (total)\tin use( total)\tin use (total)\n")
+	_, _ = fmt.Fprintf(tw, "start\twidth\tcache-map\tcache-entry\tcache-data\tmem-table\tread-block\n")
+	_, _ = fmt.Fprintf(tw, "\t\tin use (total)\tin use (total)\tin use( total)\tin use (total)\tin use (total)\n")
 	for b := 0; b < histMaxBits-histSubBucketBits; b++ {
 		bucketLow := 1 << (histSubBucketBits + b)
 		subBucketWidth := 1 << b
