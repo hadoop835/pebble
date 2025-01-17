@@ -75,7 +75,7 @@ var counters [NumPurposes]struct {
 func recordAlloc(purpose Purpose, n uintptr) {
 	counters[purpose].InUseBytes.Add(int64(n))
 	if HistogramEnabled {
-		h.RecordAlloc(n)
+		h.RecordAlloc(purpose, n)
 	}
 }
 
@@ -85,7 +85,7 @@ func recordFree(purpose Purpose, n uintptr) {
 		panic(fmt.Sprintf("negative counter value %d", newVal))
 	}
 	if HistogramEnabled {
-		h.RecordFree(n)
+		h.RecordFree(purpose, n)
 	}
 }
 

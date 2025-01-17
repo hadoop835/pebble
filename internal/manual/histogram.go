@@ -31,7 +31,7 @@ const histMaxBits = 30
 const histSubBucketBits = 3
 const histSubBuckets = 1 << histSubBucketBits
 
-type histCounters [histMaxBits - histSubBucketBits][histSubBuckets]atomic.Uint32
+type histCounters [histMaxBits - histSubBucketBits][histSubBuckets][NumPurposes]atomic.Uint32
 
 // histBucketAndSubBucket determines the bucket and sub bucket for a given allocation size.
 //
@@ -54,32 +54,25 @@ func histBucketAndSubBucket(size uintptr) (bucket, subBucket int) {
 	return bucket, subBucket
 }
 
-func (h *histogram) RecordAlloc(size uintptr) {
+func (h *histogram) RecordAlloc(purpose Purpose, size uintptr) {
 	bucket, subBucket := histBucketAndSubBucket(size)
-	h.allocs[bucket][subBucket].Add(1)
+	h.allocs[bucket][subBucket][purpose].Add(1)
 }
 
-func (h *histogram) RecordFree(size uintptr) {
+func (h *histogram) RecordFree(purpose Purpose, size uintptr) {
 	bucket, subBucket := histBucketAndSubBucket(size)
-	h.frees[bucket][subBucket].Add(1)
+	h.frees[bucket][subBucket][purpose].Add(1)
 }
 
 func (h *histogram) String() string {
 	var buf bytes.Buffer
 	tw := tabwriter.NewWriter(&buf, 2, 1, 4, ' ', 0)
-	_, _ = fmt.Fprintf(tw, "start\twidth\tin use\ttotal\n")
+	_, _ = fmt.Fprintf(tw, "start\twidth\tcache-map\tcache-entry\tcache-data\tmem-table\n")
+	_, _ = fmt.Fprintf(tw, "\t\tin use (total)\tin use (total)\tin use( total)\tin use (total)\n")
 	for b := 0; b < histMaxBits-histSubBucketBits; b++ {
-		var allocs, frees [histSubBuckets]uint32
-		for j := range allocs {
-			allocs[j] = h.allocs[b][j].Load()
-			frees[j] = h.frees[b][j].Load()
-		}
 		bucketLow := 1 << (histSubBucketBits + b)
 		subBucketWidth := 1 << b
-		for j, a := range allocs {
-			if a == 0 {
-				continue
-			}
+		for j := 0; j < histSubBuckets; j++ {
 			start := humanize.Bytes.Int64(int64(bucketLow + subBucketWidth*j))
 			width := humanize.Bytes.Int64(int64(subBucketWidth))
 			if b == 0 && j == 0 {
@@ -88,11 +81,22 @@ func (h *histogram) String() string {
 			} else if b == histMaxBits-histSubBucketBits-1 && j == histSubBuckets-1 {
 				width = ""
 			}
-			fmt.Fprintf(tw, "%s\t%s\t%s\t%s\n",
-				start, width,
-				humanize.Count.Int64(int64(a-frees[j])),
-				humanize.Count.Int64(int64(a)),
-			)
+			var allocs, frees [NumPurposes]uint32
+			for i := range allocs {
+				allocs[i] = h.allocs[b][j][i].Load()
+				frees[i] = h.frees[b][j][i].Load()
+			}
+			if allocs == ([NumPurposes]uint32{}) {
+				continue
+			}
+			fmt.Fprintf(tw, "%s\t%s", start, width)
+			for p := Purpose(1); p < NumPurposes; p++ {
+				fmt.Fprintf(tw, "\t%s (%s)",
+					humanize.Count.Int64(int64(allocs[p]-frees[p])),
+					humanize.Count.Int64(int64(allocs[p])),
+				)
+			}
+			fmt.Fprintf(tw, "\n")
 		}
 	}
 	_ = tw.Flush()

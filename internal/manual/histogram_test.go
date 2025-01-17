@@ -44,18 +44,16 @@ func TestHistogram(t *testing.T) {
 	var h histogram
 	datadriven.RunTest(t, "testdata/histogram", func(t *testing.T, d *datadriven.TestData) string {
 		switch d.Cmd {
-		case "alloc":
+		case "alloc", "free":
 			for _, l := range crstrings.Lines(d.Input) {
+				var purpose int
 				var size uintptr
-				_, _ = fmt.Sscanf(l, "%d", &size)
-				h.RecordAlloc(size)
-			}
-
-		case "free":
-			for _, l := range crstrings.Lines(d.Input) {
-				var size uintptr
-				_, _ = fmt.Sscanf(l, "%d", &size)
-				h.RecordAlloc(size)
+				_, _ = fmt.Sscanf(l, "%d %d", &purpose, &size)
+				if d.Cmd == "alloc" {
+					h.RecordAlloc(Purpose(purpose), size)
+				} else {
+					h.RecordFree(Purpose(purpose), size)
+				}
 			}
 
 		default:
